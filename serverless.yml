@@ -1,0 +1,31 @@
+# Si tu despliegue original utiliza org/app, agrega aqui TUS valores.
+service: api-alumnos-rds-v2
+
+provider:
+  name: aws
+  runtime: python3.13
+  region: us-east-1  # Cambiar si tu RDS esta en otra region.
+  memorySize: 256
+  timeout: 20
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
+  environment:
+    DB_SECRET_ID: rds_mysql_alumnos/${sls:stage}
+  # Si tu RDS requiere Lambda dentro de tu VPC, copia aqui la configuracion
+  # vpc (subnetIds/securityGroupIds) de tu API original y revisa la guia.
+
+package:
+  patterns:
+    - '!__pycache__/**'
+    - '!.git/**'
+    - '!requirements.txt'
+
+functions:
+  listar:
+    handler: ListarAlumnos.lambda_handler
+    events:
+      - http:
+          path: alumnos/listar
+          method: get
+          cors: true
+          integration: lambda-proxy
